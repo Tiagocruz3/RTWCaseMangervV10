@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCaseStore } from '../../store/caseStore';
 import { format, parseISO } from 'date-fns';
-import { FileText, Edit, Calculator, ChevronLeft, Calendar, MessageSquare, Paperclip, DollarSign, Brain, Bell, StickyNote, Upload, Download, Plus, Stethoscope, ClipboardList, FolderOpen, Users, Target, CheckCircle, Clock, AlertTriangle, User, Briefcase, Settings } from 'lucide-react';
+import { FileText, Edit, Calculator, ChevronLeft, Calendar, MessageSquare, Paperclip, DollarSign, Brain, Bell, StickyNote, Upload, Download, Plus, Stethoscope, ClipboardList, FolderOpen, Users, Target, CheckCircle, Clock, AlertTriangle, User, Briefcase, Settings, Mail } from 'lucide-react';
 import CommunicationLog from './CommunicationLog';
 import AddCommunicationModal from './AddCommunicationModal';
 import EditKeyDatesModal from './EditKeyDatesModal';
@@ -23,6 +23,7 @@ import { supabaseService } from '../../services/supabaseService';
 import { aiService } from '../../services/aiService';
 import { supabase } from '../../lib/supabase';
 import { useState as useReactState } from 'react';
+import EmailModal from './EmailModal';
 
 type TabType = 'overview' | 'reviews' | 'case-notes' | 'documents' | 'compensation' | 'ai-insights' | 'stakeholders' | 'rtwc' | 'wages';
 
@@ -46,6 +47,7 @@ const CaseDetail: React.FC = () => {
   const [selectedConsultantId, setSelectedConsultantId] = useState<string>('');
   const [isReassigning, setIsReassigning] = useState(false);
   const [showConvertToast, setShowConvertToast] = useReactState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchCaseData = async () => {
@@ -367,25 +369,47 @@ const CaseDetail: React.FC = () => {
                     </div>
                   </button>
                   {caseData.workcoverType !== 'workcover' ? (
-                    <button
-                      className="px-3 py-1.5 bg-primary-600 text-white rounded-md text-sm font-medium hover:bg-primary-700"
-                      onClick={handleConvertToClaim}
-                    >
-                      <div className="flex items-center">
-                        <Edit className="h-4 w-4 mr-1.5" />
-                        Convert to Claim
-                      </div>
-                    </button>
+                    <>
+                      <button
+                        className="px-3 py-1.5 bg-primary-600 text-white rounded-md text-sm font-medium hover:bg-primary-700"
+                        onClick={handleConvertToClaim}
+                      >
+                        <div className="flex items-center">
+                          <Edit className="h-4 w-4 mr-1.5" />
+                          Convert to Claim
+                        </div>
+                      </button>
+                      <button
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+                        onClick={() => setIsEmailModalOpen(true)}
+                      >
+                        <div className="flex items-center">
+                          <Mail className="h-4 w-4 mr-1.5" />
+                          Email
+                        </div>
+                      </button>
+                    </>
                   ) : (
-                    <button
-                      className="px-3 py-1.5 bg-primary-600 text-white rounded-md text-sm font-medium hover:bg-primary-700"
-                      onClick={() => navigate(`/cases/${caseData.id}/edit`)}
-                    >
-                      <div className="flex items-center">
-                        <Edit className="h-4 w-4 mr-1.5" />
-                        Edit Case
-                      </div>
-                    </button>
+                    <>
+                      <button
+                        className="px-3 py-1.5 bg-primary-600 text-white rounded-md text-sm font-medium hover:bg-primary-700"
+                        onClick={() => navigate(`/cases/${caseData.id}/edit`)}
+                      >
+                        <div className="flex items-center">
+                          <Edit className="h-4 w-4 mr-1.5" />
+                          Edit Case
+                        </div>
+                      </button>
+                      <button
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+                        onClick={() => setIsEmailModalOpen(true)}
+                      >
+                        <div className="flex items-center">
+                          <Mail className="h-4 w-4 mr-1.5" />
+                          Email
+                        </div>
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -1203,6 +1227,17 @@ const CaseDetail: React.FC = () => {
           onStatusUpdate={handleStatusUpdate}
           isOpen={isStatusManagerOpen}
           onClose={() => setIsStatusManagerOpen(false)}
+        />
+      )}
+
+      {/* Email Modal */}
+      {isEmailModalOpen && (
+        <EmailModal
+          isOpen={isEmailModalOpen}
+          onClose={() => setIsEmailModalOpen(false)}
+          worker={caseData.worker}
+          employer={caseData.employer}
+          stakeholders={caseData.stakeholders || []}
         />
       )}
     </div>
